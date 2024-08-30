@@ -1,8 +1,0 @@
-(if you have a REALLY gullible victim then)
-pip install discord.py
-pip install opencv-python
-pip install pillow
-pip install pyautogui
-pip install pygetwindow
-pip install pycaw
-pip install numpy
