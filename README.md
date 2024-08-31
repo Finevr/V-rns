@@ -33,3 +33,5 @@ pip install pygetwindow
 pip install pycaw
 
 pip install numpy
+
+NOTE: IF YOU GET IN TROUBLE USING THIS, IM NOT LIABLE!!
